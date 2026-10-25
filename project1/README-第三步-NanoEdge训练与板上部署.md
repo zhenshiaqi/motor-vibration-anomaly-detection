@@ -12,7 +12,7 @@
 
 
 
-* 数据集就绪：`dataset/normal_01~20.csv`、`fault_01~20.csv`（每个文件 1024 行 × 3 列，第一行是表头 `x,y,z`）；
+* 数据集就绪：`normal_XX.csv` / `fault_XX.csv`，每个文件 **1024 行 × 3 列、无表头**；本仓库 `project1/NanoEdge ai_math/project_1/` 已含 normal / fault 各 5 个（跑通流程够用），建议扩到每类 15~20 个再正式训练；
 
 * 第二步的工程能正常录制 CSV（`r` 命令 2.5 秒出块）；
 
@@ -62,13 +62,13 @@
 
 
 
-1. 在数据界面，添加 **Nominal data（正常数据）**：把 `normal_01.csv ~ normal_20.csv` 全部拖入或逐个添加；
+1. 在数据界面，添加 **Nominal data（正常数据）**：把 `normal_01.csv ~ normal_05.csv`（或你自己采集的全部文件）拖入或逐个添加；
 
-2. 添加 **Abnormal data（异常数据）**：把 `fault_01.csv ~ fault_20.csv` 添加进去；
+2. 添加 **Abnormal data（异常数据）**：把 `fault_01.csv ~ fault_05.csv`（或你自己采集的全部文件）添加进去；
 
 3. 每个文件 = 1 个信号（1024 样本 × 3 轴），Studio 会自动识别 3 列 = 3 个轴；
 
-4. **检查**：确认每个信号的行数正确（1024 数据行）。如果第一行表头 `x,y,z` 被当成数据（导致行数为 1025），用 **Data Manipulation** 工具删除第一行：
+4. **检查**：确认每个信号的行数正确（**1024 数据行**）。本仓库的 CSV 无表头，导入后应正好 1024 行；如果你自己保存时把 `x,y,z` 表头也复制进去了，会变成 1025 行，用 **Data Manipulation** 工具删掉第一行：
 
 * 导入文件 → **Extract lines**：起始行 1，结束行按实际 → 或直接选 "从第 1 行开始删 1 行"；
 
@@ -93,6 +93,10 @@
 * 记下该结果的 **Signal length**（输入信号长度，如 128/256/512/1024）；
 
 1. 如果所有结果的 RAM 都超过 20KB 预算，说明信号太长 —— 用 Data Manipulation 把窗口抽短（例如从 1024 行抽到 256 行：**Extract lines / Change Column Number** 处理）后重新 Benchmark。
+
+> 本仓库实际选中的结果：**MML** 算法（预处理 = 绝对值 + 32% 移动平均池化），
+> signal length = **1 × 3 轴**，`learning_min_lines = 56`，预计 **RAM 624 B / Flash 564 B**，
+> 远低于 F103C8 的 20 KB / 64 KB —— 不需要抽短窗口。详见 `libneai_nanoedge-ai-test-try1_2/metadata.json`。
 
 
 
@@ -205,10 +209,10 @@
 ```
 === MPU6050 AI Detector v3 ===
 Cmd: s=stream r=record l=learn d=detect c=cancel h=help
-[AI] NanoEdge init OK, signal len=256
+[AI] NanoEdge init OK, signal len=1
 ```
 
-`signal len` 显示的是库要求的输入长度，后面的学习 / 检测都按这个长度切窗口。
+`signal len` 显示的是模型要求的输入长度——本仓库选中的模型是 **1 样本 × 3 轴**，所以显示 `1`（换成别的 Benchmark 结果这个数会变）。学习 / 检测都按这个长度切窗口：`collector.c` 会把 1024 样本的录制窗口从头到尾切成若干个子窗口逐个喂给库。
 
 
 
@@ -238,23 +242,23 @@ Cmd: s=stream r=record l=learn d=detect c=cancel h=help
 
 1. 发 `d` 开启检测模式：板子自动循环「录 1 秒窗口 → detect → 打印相似度」；
 
-2. 电机正常运转时，应看到 `SIM:90+`（接近 100）；
+2. 电机正常运转时，应看到 `SIM:80+`（越接近 100 越正常）；
 
 3. **给电机加故障**（贴配重 / 卡异物）后，相似度应明显下降：
 
-* `SIM < 90` → 打印 `[ALARM] anomaly detected!`，板载 LED（PC13）闪 3 次；
+* `SIM < 80` → 打印 `[ALARM] anomaly detected!`，板载 LED（PC13）闪 3 次；
 
 1. 再发 `d` 关闭检测模式。
 
 ### 8.3 阈值调整
 
-相似度阈值在 `collector.c` 顶部 `ALARM_THRESHOLD`（默认 90）。按实测：
+相似度阈值在 `collector.c` 顶部 `ALARM_THRESHOLD`（**默认 80**，ST 推荐的起点也是 80；判据是 `sim < ALARM_THRESHOLD` 即告警）。按实测：
 
 
 
-* 正常 SIM 常低于 90 → 把阈值调低（如 80），减少误报；
+* 正常 SIM 常低于 80 → 把阈值调低（如 70），减少误报；
 
-* 故障 SIM 仍高于阈值 → 调高（如 95）或重新学习 / 换 Benchmark 结果。
+* 故障 SIM 仍高于阈值 → 调高（如 90）或重新学习 / 换 Benchmark 结果。
 
 
 
@@ -266,7 +270,7 @@ Cmd: s=stream r=record l=learn d=detect c=cancel h=help
 
 | 现象                                | 处理                                                                                                                |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 编译报错找不到 neai / 链接失败               | 检查 7.2 的 Libraries（`neai`）和 search path（`NEAI`）是否都加了                                                              |
+| 编译报错找不到 neai / 链接失败               | 检查 7.2 的 `-L../NEAI -lneai` 是否填在 **Linker → Miscellaneous → Other flags** 里，且 `NEAI/` 下确实有 `libneai.a`；**不要**再往 Libraries(-l) / search path(-L) 里加一遍（那两处要留空）                                                              |
 | RAM 超限（20KB）                      | Studio 里 Benchmark 选 RAM 更小的结果，或用 Data Manipulation 把信号抽短（如 256 样本），相应调整 COLLECT\_SAMPLES                         |
 | `init FAIL`                       | 库没链接好（看编译是否成功），或 target 选错                                                                                        |
 | 检测前没学习，detect 返回 NOT\_INITIALIZED | 先做 8.1 的学习流程                                                                                                      |
