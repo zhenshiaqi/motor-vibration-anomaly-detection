@@ -1,0 +1,119 @@
+{
+  "signal_len": 1,
+  "dimension": 3,
+  "input_size": 3,
+  "max_categories": 20,
+  "ratio_cv_threshold": 0.550000011920929,
+  "factor_z_score": 0.10000000149011612,
+  "factor_cor": 0.14000000059604645,
+  "factor_z_max": 0.009999999776482582,
+  "category_correlation_threshold": 0.25999999046325684,
+  "category_ratio_threshold": 0.9300000071525574,
+  "sensitivity": 2.0,
+  "learning_call_cnt": 2397,
+  "z_mean_cv": 0.7436901330947876,
+  "z_max_cv": 1.2539918422698975,
+  "cor_cv": 0.9999743103981018,
+  "nbr_cv": 2387,
+  "z_mean_threshold": 1.2999999523162842,
+  "z_max_threshold": 3.5,
+  "cor_threshold": 0.9800000190734863,
+  "category_count": 4,
+  "categories": [
+    {
+      "mean_quant": {
+        "level": [
+          255,
+          0,
+          198
+        ],
+        "min": 511.52117919921875,
+        "max": 12614.8818359375
+      },
+      "std_quant": {
+        "level": [
+          207,
+          149,
+          255
+        ],
+        "max": 62.464115142822266
+      },
+      "learned_number": 1921
+    },
+    {
+      "mean_quant": {
+        "level": [
+          255,
+          0,
+          213
+        ],
+        "min": 2016.7542724609375,
+        "max": 12056.5146484375
+      },
+      "std_quant": {
+        "level": [
+          255,
+          153,
+          166
+        ],
+        "max": 173.7046356201172
+      },
+      "learned_number": 472
+    },
+    {
+      "mean_quant": {
+        "level": [
+          255,
+          0,
+          217
+        ],
+        "min": 2112.0,
+        "max": 11266.6669921875
+      },
+      "std_quant": {
+        "level": [
+          104,
+          128,
+          255
+        ],
+        "max": 229.57281494140625
+      },
+      "learned_number": 3
+    },
+    {
+      "mean_quant": {
+        "level": [
+          255,
+          0,
+          201
+        ],
+        "min": 1480.0,
+        "max": 12720.0
+      },
+      "std_quant": {
+        "level": [
+          0,
+          0,
+          0
+        ],
+        "max": 9.999999974752427e-07
+      },
+      "learned_number": 1
+    }
+  ],
+  "category_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "z_score_norm": "abs",
+  "z_mean_threshold_min": 1.2999999523162842,
+  "z_mean_threshold_max": 4.0,
+  "z_max_threshold_min": 3.5,
+  "z_max_threshold_max": 25.0,
+  "cor_threshold_min": 0.6000000238418579,
+  "cor_threshold_max": 0.9800000190734863,
+  "min_category_samples": 5,
+  "update_threshold": 3
+}

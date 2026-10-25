@@ -1,0 +1,12 @@
+[
+  {
+    "absolute": {}
+  },
+  {
+    "pooling": {
+      "strategy": "moving_average",
+      "output_percentage": 32,
+      "n_windows": 1
+    }
+  }
+]

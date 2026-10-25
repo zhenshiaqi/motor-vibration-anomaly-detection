@@ -1,0 +1,35 @@
+[
+  {
+    "absolute": {
+      "input_dimension": {
+        "n_samples": 2397,
+        "n_features": 1,
+        "n_channels": 3
+      },
+      "output_dimension": {
+        "n_samples": 2397,
+        "n_features": 1,
+        "n_channels": 3
+      },
+      "context": null
+    }
+  },
+  {
+    "pooling": {
+      "input_dimension": {
+        "n_samples": 2397,
+        "n_features": 1,
+        "n_channels": 3
+      },
+      "output_dimension": {
+        "n_samples": 2397,
+        "n_features": 1,
+        "n_channels": 3
+      },
+      "context": null,
+      "strategy": "moving_average",
+      "output_percentage": 32,
+      "n_windows": 1
+    }
+  }
+]

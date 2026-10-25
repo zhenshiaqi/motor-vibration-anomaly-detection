@@ -1,0 +1,123 @@
+{
+    "accelerators": [],
+    "algorithm_type": "on_board_training",
+    "commit": "HEAD",
+    "compilation_date": "2026-10-04T08:20:22.462565",
+    "compilation_flags": {
+        "float_abi": "soft",
+        "fshort_enums": true,
+        "short_wchar": false
+    },
+    "compilation_str": "{'compilation_dict':{'request_type':'library','api':{'env':'PROD','version':'v3'},'version':{'web_api':{'env':'PROD','version':'v3'},'local_api':{'version':'2026.06.22.0','platform':'win64'},'studio':'5.2.0'},'compilation_flags':{'float_abi':'soft','short_wchar':false,'fshort_enums':true,'use_knowledge':false},'mcu':'cortex-m3_stmicroelectronics_stm32f1-series','sensor':'','accelerators':[],'request_origin':'manual','algorithm_type':'on_board_training','lib_version':'v3_b0d8eda','info':{'progression':{'evals_done':20570,'optimization_progress':1.0,'elapsed_time':8966,'cpu_info':{'cpu_nb_cores':32,'cpu_nb_cores_for_optimization':22},'state':'finished'},'max_ram':20000,'max_flash':64000,'optimization_global_id':'1cda487f5bfbb2c57d0636fe0bb1f10b','version':{'local_api':'2026.06.22.0','studio':'5.2.0'},'creation_date':'2026-10-03T15:04:38+00:00'},'class_names':'nominal,anomaly','results':[{'result_id':54,'combination':{'type':'anomaly_detection','name':'MML','params':{'factor_z_score':0.1,'factor_z_max':0.01,'factor_cor':0.14,'category_correlation_threshold':0.26,'category_ratio_threshold':0.93,'ratio_cv_threshold':0.55,'z_score_norm':'abs','sensitivity':2.0,'max_categories':20,'tmp_dir_path':null},'preprocessing_chain':[{'absolute':{}},{'pooling':{'strategy':'moving_average','output_percentage':32,'n_windows':1}}]},'model':null,'performance':{'performance':{'score':0.9806,'main_kpi':0.9934},'memory_usage':{'estimated_ram':624,'estimated_flash':564,'estimated_flash_knowledge':null}},'learning_min_lines':56,'knowledge':'eNrVVclu2zAQ_RVDZ1fgcGd_JQgERWIcATLpanEWQ__eISlbsuMmPfRS3TgcvnnzZtEpO3T20PnK9n3jdtnPzcMpK596346DxdMpa9xhHIq62VvXN95Fmyv6cn9obY8nyozabtD0bMth7KINoqF6KZ2zbTCwCS1-HP4VVOXdYN8GPLqxbSc0nbKD921K4b8gjYZ-6MrB7t7Rku39EckX5dF25c5mS-SD7SrrhmBEHBqRXxtX-9cYaZoet-F1bdtIrW92rmyL1rqZx5o5w3OSpm8-7GzYl29FFXj4rkkZEbQis8YX1bEYXjCnF9_WeENyIUj4AAwlhhp0fC6rwXfFR9FXvrPRCUj6gBv0lEAXN_RJLnz2EUYSLrlYIyGj6ESISZ9SkmsqdACaqb4HqM62gaa7IUlFeobAjAqp-fpZSuz6gWGJjAJBhVDBvw-iDc2xGUJ5aB40aW3ZuVClqmzbonLDUn4kbUss-THiKc4kps4YMVxpJZND0DncAxJkxoDmlEqjjRKxObrz65gxZ0CY0UBAh5I_zbeU6VW4dRaImrIWlIGkCH6JunZj-TnajQQ6lcwQxbiW7FrpMea60jF1Cu6KyOPXWEaHE0p0jI34gDpuNygaGB0btAn9JwByQQGUAWMo6Jh5qjZQCTzXGjQThikxxfmo70ITlAB7a7vBII8XBElzbCQAAZxqitLK6VwzWxdu3D_Z0HvYuRD3xXfMKbCFOSUgcyU4VZRLEgiumBMhc4yKPcq_YR6gQaC4IOXCHBTLVWhWITEOKHqXOI_2v-GtVrwBUu_OkVBmmUspZ_m_4AoEyw1U36hMqcmFohr15zjEkoq7ZNnfUSWwUAWuyZoqSo3nLxiSiEEWbiY_7wuuBMVa2R9E3W-CuDUvDe67OpoDJO5MnJxY-nmnFc53-7Cj8b-Y3Rm-Yub_hwG88Y1MeUz0ZjpnnDShn-6S-iI-vBrf-RnJZVpiuCI4aKHMZ8d5r96ZdcQoLnIsP7fAZDzUeHG9RKbpN81DajU=','knowledge_dat':null,'commit_tag_used':'v3_b0d8eda'}],'data':{'nb_cols':3,'nb_lines':[[{'file_type':'nominal','nb_lines':1024},{'file_type':'nominal','nb_lines':1024},{'file_type':'nominal','nb_lines':1024},{'file_type':'nominal','nb_lines':1024},{'file_type':'nominal','nb_lines':1024},{'file_type':'anomaly','nb_lines':1024},{'file_type':'anomaly','nb_lines':1024},{'file_type':'anomaly','nb_lines':1024},{'file_type':'anomaly','nb_lines':1024},{'file_type':'anomaly','nb_lines':1024}]]},'toolchain_type':'gcc','only_emulators':false},'sign':113186,'license_key':'***'}",
+    "compile_emulators": true,
+    "compile_library": true,
+    "data": {
+        "nb_cols": 3,
+        "nb_lines": [
+            [
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 1024
+                },
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 1024
+                }
+            ]
+        ]
+    },
+    "learning_min_lines": 56,
+    "lib_limited": false,
+    "library_id": "6ac20c46d63497ebc91d58d3",
+    "library_md5sum": "8343611745c7fa5b9c7f7fcb2d8e9bd1",
+    "mcu": "cortex-m3_stmicroelectronics_stm32f1-series",
+    "mcu_cpn": "",
+    "mcu_display_name": "STM32F1 Series - STMicroelectronics",
+    "mcu_family": "STM32F1 Series",
+    "mcu_group": "prod",
+    "mcu_type": "cortex-m3",
+    "mcu_vendor": "STMicroelectronics",
+    "optimization_info": {
+        "creation_date": "2026-10-03T15:04:38+00:00",
+        "max_flash": 64000,
+        "max_ram": 20000,
+        "optimization_global_id": "1cda487f5bfbb2c57d0636fe0bb1f10b",
+        "progression": {
+            "cpu_info": {
+                "cpu_nb_cores": 32,
+                "cpu_nb_cores_for_optimization": 22
+            },
+            "elapsed_time": 8966,
+            "evals_done": 20570,
+            "optimization_progress": 1.0,
+            "state": "finished"
+        },
+        "version": {
+            "local_api": "2026.06.22.0",
+            "studio": "5.2.0"
+        }
+    },
+    "performance": {
+        "memory_usage": {
+            "estimated_flash": 564,
+            "estimated_flash_knowledge": null,
+            "estimated_ram": 624
+        },
+        "performance": {
+            "main_kpi": 0.9934,
+            "score": 0.9806
+        }
+    },
+    "request_type": "library",
+    "sensor": "",
+    "studio_info": {
+        "local_api": {
+            "platform": "win64",
+            "version": "2026.06.22.0"
+        },
+        "studio": "5.2.0",
+        "web_api": {
+            "env": "PROD",
+            "version": "v3"
+        }
+    },
+    "toolchain_version": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+    "user_info": {
+        "company": "\u6e56\u5357\u5de5\u5546\u5927\u5b66",
+        "email": "2181474070@qq.com",
+        "first_name": "\u5218",
+        "last_name": "\u4f1f\u6d9b"
+    }
+}

@@ -1,0 +1,39 @@
+# ============================================================
+#  编译产物 / 构建缓存 —— 不入库（源码、配置、数据、AI 库均保留）
+# ============================================================
+
+# ---------- Keil MDK（led/stm32cubemx_test/stm32projects/test_LED/MDK-ARM）----------
+**/MDK-ARM/**/*.o
+**/MDK-ARM/**/*.d
+**/MDK-ARM/**/*.crf
+**/MDK-ARM/**/*.axf
+**/MDK-ARM/**/*.hex
+**/MDK-ARM/**/*.htm
+**/MDK-ARM/**/*.map
+**/MDK-ARM/**/*.lst
+**/MDK-ARM/**/*.lnp
+**/MDK-ARM/**/*.sct
+**/MDK-ARM/**/*.dep
+**/MDK-ARM/**/*.iex
+**/MDK-ARM/**/*.uvguix.*
+**/*.uvguix.*
+
+# ---------- STM32CubeIDE ----------
+**/Debug/
+**/Release/
+*.cyclo
+*.su
+*.launch.bak
+
+# ---------- 系统 / 编辑器 ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# ---------- 本地临时 ----------
+.commitmsg.txt
