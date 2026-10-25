@@ -37,7 +37,14 @@ Desktop.ini
 
 # ---------- 本地临时 ----------
 .commitmsg.txt
+# .tmp/：本地排障临时目录（IDE 工作区备份、构建验证产物），不入库
+.tmp/
 
 # ---------- 仅本机保留、不上传的目录 ----------
 # led/：早期板级点灯验证工程（Keil MDK），已从仓库移除，文件仍保留在本地
 led/
+
+# ---------- IDE 工作区缓存（Eclipse / CubeIDE 自动生成，绝不要入库）----------
+# 例如 project1/stm32cubeide/.metadata（约 20 MB，纯索引/日志）
+.metadata/
+**/.metadata/
