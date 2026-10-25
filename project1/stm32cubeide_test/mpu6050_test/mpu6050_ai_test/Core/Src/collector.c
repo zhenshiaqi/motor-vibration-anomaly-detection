@@ -236,7 +236,7 @@ void Collector_Process(void)
                 HAL_UART_Transmit(uart, (uint8_t *)line, strlen(line), 100);
             }
             send_str("====END====\r\n");
-            send_str("[Rec] done, copy from x,y,z to last data line as CSV\r\n");
+            send_str("[Rec] done, copy 1024 data lines between BEGIN/END (skip x,y,z)\r\n");
         }
         return;
     }

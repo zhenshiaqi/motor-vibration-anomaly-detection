@@ -263,6 +263,7 @@ x,y,z
 16382,1,-1
 ...
 ====END====
+[Rec] done, copy 1024 data lines between BEGIN/END (skip x,y,z)
 ```
 
 
