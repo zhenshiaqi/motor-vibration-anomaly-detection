@@ -1,6 +1,6 @@
 /**
  * @file    collector.c
- * @brief   数据采集器 + NanoEdge AI 异常检测（第三步）
+ * @brief   数据采集器 + NanoEdge AI 异常检测（第四版）
  *
  * 工作方式：
  *   - TIM2 每 1ms 产生一次中断，Collector_OnTick() 只置标志位（不在中断里做 I2C 读写）
@@ -8,6 +8,13 @@
  *   - 命令 'r' 录制一个窗口（1024 样本 x 3 轴）；'s' 实时流；'c' 取消；'h' 帮助
  *   - 命令 'l' 用最近录制的窗口学习（喂给 NanoEdge 库，可重复录制后多次学习）
  *   - 命令 'd' 切换连续检测：自动录制实时窗口 -> detect() -> 打印相似度，低于阈值告警
+ *
+ * v4 改动：
+ *   1. 传感器没接好也能跑：命令照常回话，只提示传感器缺失（v3 会先去初始化传感器，
+ *      失败就整个 CLI 死掉，串口看上去像"没输出"）；
+ *   2. 告警灯非阻塞：3 次闪烁由 1ms tick 推进，不再 HAL_Delay 600ms；
+ *   3. 空闲每 HEARTBEAT_MS 打印一行心跳；
+ *   4. detect() 的返回值全部处理（学习不足时不再误报 ALARM）。
  *
  * 注意：提示文字全部使用 ASCII；本文件需在加入 libneai.a / NanoEdgeAI.h 后编译。
  */
@@ -35,12 +42,44 @@ static volatile uint8_t detecting = 0;      /* 连续检测开关 */
 static uint16_t stream_div = 0;             /* 1kHz -> 100Hz 节流计数 */
 static MPU6050_Accel_t a;
 
+static uint8_t sensor_ready = 0;            /* MPU6050 是否在线 */
+static uint16_t alarm_phases = 0;           /* 告警灯剩余相位数（每个相位 100ms） */
+static uint16_t alarm_div = 0;
+static uint32_t heartbeat_div = 0;          /* 空闲心跳计数（ms） */
+
 /* NanoEdge 输入缓冲：长度由生成的库决定（NEAI_INPUT_SIGNAL_LENGTH x 轴数） */
 static float fbuf[NEAI_INPUT_SIGNAL_LENGTH * NEAI_INPUT_AXIS_NUMBER];
 
 static void send_str(const char *s)
 {
     HAL_UART_Transmit(uart, (uint8_t *)s, strlen(s), 100);
+}
+
+/* 板载 LED：PC13 低电平点亮（Blue Pill 原厂板就是这种接法） */
+static void led_off(void) { HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); }
+
+/* 启动告警灯：3 次闪烁 = 6 个 100ms 相位，由 alarm_tick() 推进 */
+static void alarm_start(void)
+{
+    alarm_phases = 6U;
+    alarm_div = 0;
+}
+
+/* 每 1ms 调用一次：非阻塞地推进告警灯相位 */
+static void alarm_tick(void)
+{
+    if (alarm_phases == 0U) {
+        return;
+    }
+    if (++alarm_div < 100U) {
+        return;
+    }
+    alarm_div = 0;
+    alarm_phases--;
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    if (alarm_phases == 0U) {
+        led_off();              /* 最后一下熄灭，别停在"亮"上 */
+    }
 }
 
 /* 把窗口里的一个子窗口（sig 个样本 x 3 轴）从 int16 转成 float 填入 fbuf */
@@ -76,7 +115,7 @@ static void neai_learn_window(void)
             break;
         }
     }
-    sprintf(tmp, "[AI] learned %d signal(s)\r\n", n);
+    sprintf(tmp, "[AI] learned %u signal(s)\r\n", (unsigned)n);
     send_str(tmp);
     send_str("[AI] record more windows and repeat l for richer knowledge\r\n");
 }
@@ -96,32 +135,45 @@ static void neai_detect_window(void)
         send_str("[AI] not initialized\r\n");
         return;
     }
-    sprintf(tmp, "SIM:%u\r\n", sim);
+    if (st == NEAI_LEARNING_IN_PROGRESS) {
+        /* 学习样本还不够：此时 sim 无意义，绝不能当成告警 */
+        send_str("[AI] need more learning: record r then l a few times\r\n");
+        return;
+    }
+    if (st != NEAI_OK) {
+        send_str("[AI] detect error\r\n");
+        return;
+    }
+    sprintf(tmp, "SIM:%u\r\n", (unsigned)sim);
     send_str(tmp);
     if (sim < ALARM_THRESHOLD) {
-        send_str("[ALARM] anomaly detected!\r\n");
-        for (int j = 0; j < 3; j++) {           /* PC13 LED 闪 3 次提示 */
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-            HAL_Delay(100);
-            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-            HAL_Delay(100);
-        }
+        send_str("[ALARM] anomaly detected! (PC13 LED blinks 3x)\r\n");
+        alarm_start();          /* 非阻塞：检测流程立刻继续 */
     }
 }
 
-void Collector_Init(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart, I2C_HandleTypeDef *hi2c)
+void Collector_Init(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart, I2C_HandleTypeDef *hi2c,
+                    uint8_t sensor_ok)
 {
     tim = htim;
     uart = huart;
     i2c = hi2c;
+    sensor_ready = sensor_ok;   /* 先存下来：后面所有命令都依赖它 */
 
     HAL_TIM_Base_Start_IT(tim);
 
     /* 板载 LED 默认熄灭（PC13 在 CubeMX 中设为 GPIO_Output） */
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    led_off();
 
-    send_str("\r\n=== MPU6050 AI Detector v3 ===\r\n");
+    /* 版本横幅已由 main.c 的开机自检打印，这里只补命令表和状态 */
     send_str("Cmd: s=stream r=record l=learn d=detect c=cancel h=help\r\n");
+
+    if (sensor_ready) {
+        send_str("[I2C] MPU6050 online, sampling 1kHz (TIM2)\r\n");
+    } else {
+        send_str("[I2C] MPU6050 MISSING: s/r/d will only answer errors.\r\n");
+        send_str("[I2C] check VCC=3.3V, GND, SCL=PB6, SDA=PB7, AD0->GND (addr 0x68)\r\n");
+    }
 
     /* NanoEdge 库初始化：不用预训练知识，选择板上现场学习 */
     if (neai_anomalydetection_init(false) == NEAI_OK) {
@@ -131,6 +183,7 @@ void Collector_Init(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart, I2C_Hand
     } else {
         send_str("[AI] NanoEdge init FAIL\r\n");
     }
+    send_str("[ready] type h for help\r\n");
 }
 
 /* TIM2 中断回调：只置标志，不做耗时操作 */
@@ -149,12 +202,20 @@ void Collector_HandleCmd(uint8_t cmd)
 
         case 's':
         case 'S':
+            if (!sensor_ready) {
+                send_str("[Sensor] MPU6050 not ready, cannot stream\r\n");
+                break;
+            }
             streaming = !streaming;
             send_str(streaming ? "[Stream] started\r\n" : "[Stream] stopped\r\n");
             break;
 
         case 'r':
         case 'R':
+            if (!sensor_ready) {
+                send_str("[Sensor] MPU6050 not ready, cannot record\r\n");
+                break;
+            }
             if (recording || detecting) {
                 send_str("[Rec] busy, wait...\r\n");
                 break;
@@ -173,6 +234,10 @@ void Collector_HandleCmd(uint8_t cmd)
 
         case 'd':
         case 'D':
+            if (!sensor_ready) {
+                send_str("[Sensor] MPU6050 not ready, cannot detect\r\n");
+                break;
+            }
             detecting = !detecting;
             recording = 0;      /* 关检测时同时取消在录的窗口，避免事后输出整块 CSV */
             window_ready = 0;
@@ -199,8 +264,10 @@ void Collector_Process(void)
     }
     tick_flag = 0;
 
+    alarm_tick();           /* 放在最前面：录制/检测期间告警灯也能正常闪 */
+
     /* 检测模式：空闲时自动开始录下一个实时窗口 */
-    if (detecting && !recording && !window_ready) {
+    if (detecting && sensor_ready && !recording && !window_ready) {
         idx = 0;
         recording = 1;
         have_window = 0;
@@ -252,5 +319,17 @@ void Collector_Process(void)
                 HAL_UART_Transmit(uart, (uint8_t *)line, strlen(line), 100);
             }
         }
+        return;
     }
+
+#if (HEARTBEAT_MS > 0)
+    /* 模式 4：完全空闲时每 5 秒一行心跳。
+     * 这行不是为了好看，而是让"烧完看不到东西"的人能立刻分清
+     * "固件在跑、只是没命令" 和 "板子根本没跑起来"。 */
+    heartbeat_div++;
+    if (heartbeat_div >= HEARTBEAT_MS) {
+        heartbeat_div = 0;
+        send_str("[alive] idle, type h for help\r\n");
+    }
+#endif
 }
