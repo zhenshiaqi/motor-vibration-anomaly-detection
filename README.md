@@ -4,6 +4,9 @@
 
 > 一句话：机械振动信号 → CSV 数据集 → NanoEdge AI 异常检测库 → 边缘端实时预测性维护。
 
+> 🚀 **第一次使用？** 先看 [获取与使用指南（docs/getting-started.md）](docs/getting-started.md)：
+> 准备清单、接线表、烧录步骤、上电自检、5 分钟跑通、常见问题与能力边界。
+
 ---
 
 ## 1. 项目亮点
@@ -79,6 +82,10 @@ NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分）�
 .
 ├── README.md                                    # 本文件：项目总览
 ├── .gitignore                                   # 排除编译产物（源码/数据/AI 库保留）
+│
+├── docs/                                        # 额外文档
+│   ├── getting-started.md                       # 上手清单：准备/接线/烧录/自检/FAQ
+│   └── audit-report.md                          # "串口没输出"的代码级排查
 │
 ├── firmware/                                    # 预编译固件：不装 IDE 也能直接烧板
 │   ├── README.md                                # 烧录步骤 + 开机自检 + LED 状态码

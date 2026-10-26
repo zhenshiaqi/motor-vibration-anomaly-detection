@@ -3,6 +3,9 @@
 本目录是 `project1/stm32cubeide_test/mpu6050_test/mpu6050_ai_test/` 编译出的产物，
 方便不装 IDE 也能直接烧板验证。同名三种格式内容等价，按工具选用其一。
 
+> 第一次用？完整流程（准备清单、接线、烧录、上电自检、5 分钟跑通、常见问题）见
+> [`docs/getting-started.md`](../docs/getting-started.md)。
+
 | 文件 | 大小 | 用途 |
 | --- | --- | --- |
 | `mpu6050_ai_test_v4.1.elf` | 919 KB | **推荐**：带符号与调试信息，CubeIDE / GDB 调试用（含源码行号） |
