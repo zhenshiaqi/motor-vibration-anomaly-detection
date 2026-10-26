@@ -263,4 +263,26 @@ v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成
 
 ---
 
+## 12. 许可证
+
+本项目采用**三选一（multiple / disjunctive license）**：你可以任选下面之一来使用本仓库的
+原创代码与数据，选哪个就以哪个的条款为准。
+
+| 许可证 | 文件 | 适合场景 |
+| --- | --- | --- |
+| MIT | [`LICENSE-MIT`](LICENSE-MIT) | 最宽松，署名即可；课程作业、作品集、二次开发都省事 |
+| Apache-2.0 | [`LICENSE-APACHE`](LICENSE-APACHE) | 比 MIT 多一条明确的专利授权，适合想保留专利保护的场景 |
+| GPL-3.0（only） | [`LICENSE-GPL-3.0`](LICENSE-GPL-3.0) | 传染性开源：衍生作品也必须开源 |
+
+SPDX 标识：`MIT OR Apache-2.0 OR GPL-3.0-only`
+版权声明：`Copyright (c) 2026 zhenshiaqi`
+
+> ⚠️ 上面三选一只覆盖**本项目原创部分**（`Core/Src`、`Core/Inc`（除 `NanoEdgeAI.h`）、
+> 文档、CSV 数据集、由这些源码编译出的 `firmware/` 固件）。
+> 第三方组件仍按各自许可证：ST 的 STM32F1 HAL/CMSIS 是 BSD-3-Clause
+> （见 `Drivers/*/LICENSE.txt`），`NEAI/libneai.a` 与 `NanoEdgeAI.h` 归 STMicroelectronics。
+> 完整说明见 [`LICENSE`](LICENSE)。
+
+---
+
 *本仓库为课程/实践项目归档：硬件验证、数据采集、边缘 AI 训练与部署的完整闭环。*

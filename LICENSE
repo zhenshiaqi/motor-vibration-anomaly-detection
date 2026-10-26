@@ -1,0 +1,46 @@
+Copyright (c) 2026 zhenshiaqi
+
+This repository is MULTI-LICENSED. You may choose, at your option, any ONE of
+the following three licenses for the original work in this repository:
+
+  1. MIT License                 -> see LICENSE-MIT
+  2. Apache License, Version 2.0 -> see LICENSE-APACHE
+  3. GNU GPL, Version 3.0 only   -> see LICENSE-GPL-3.0
+
+SPDX-License-Identifier: MIT OR Apache-2.0 OR GPL-3.0-only
+
+This is a disjunctive (multiple) license grant, not a cumulative one: pick the
+option that fits your use. If you redistribute a modified version, keep the
+copyright notice and ship the license text of the option you chose. If you
+choose GPL-3.0 and distribute binaries built from this code, you must also make
+the corresponding source available (this repository is that source).
+
+"Original work" means the files authored for this project:
+  - project1/stm32cubeide_test/mpu6050_test/mpu6050_ai_test/Core/Src/*
+  - project1/stm32cubeide_test/mpu6050_test/mpu6050_ai_test/Core/Inc/*
+    (except NanoEdgeAI.h, which belongs to STMicroelectronics)
+  - the Markdown documentation in this repository
+  - the CSV datasets under project1/NanoEdge ai_math/project_1/
+  - the firmware binaries under firmware/ built from the sources above
+
+THIRD-PARTY COMPONENTS ARE NOT COVERED by the choice above. They remain under
+their own licenses, and their notices must be preserved:
+
+  - STM32F1 HAL driver: BSD-3-Clause, see
+    project1/stm32cubeide_test/mpu6050_test/mpu6050_ai_test/Drivers/STM32F1xx_HAL_Driver/LICENSE.txt
+  - CMSIS: see Drivers/CMSIS/LICENSE.txt
+  - NanoEdge AI library (NEAI/libneai.a, Core/Inc/NanoEdgeAI.h):
+    (c) STMicroelectronics, distributed under the ST NanoEdge AI Studio terms
+  - Startup code and linker script: see the file headers
+
+-------------------------------------------------------------------------------
+
+中文说明（与上面的英文条款等价）：
+
+本仓库采用「三选一」的多许可证：你可以任选 MIT、Apache-2.0、GPL-3.0(only)
+其中之一来使用本仓库的原创代码与数据；选中哪一个，就在再分发时保留对应的
+版权声明与许可证文本。若选择 GPL-3.0 并分发由本代码编译的固件，需同时提供
+对应源码（本仓库即源码）。
+
+ST 的 HAL/CMSIS 与 NanoEdge AI 库属于第三方组件，仍按其自身许可证执行，
+不在本仓库的三选一范围内。
