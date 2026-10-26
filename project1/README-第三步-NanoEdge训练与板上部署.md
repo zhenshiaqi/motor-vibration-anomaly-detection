@@ -198,18 +198,25 @@
 
 
 
-* 用第三步提供的 `collector.c` / `collector.h` **覆盖**工程里的同名文件（Refresh）；
+* 用本仓库的 `collector.c` / `collector.h` **覆盖**工程里的同名文件（Refresh）；
 
-* `main.c` **不用改**（初始化、主循环、回调沿用第二步的写法）；
+* **`main.c` 也要用本仓库的版本**：v4 的 `Collector_Init()` 多了一个 `sensor_ok` 参数，
+  并且增加了开机自检、HSE→HSI 回退和传感器重试。继续用第二步的 main.c 会编译不过；
+  若沿用 v3 的 main.c，则传感器一失败串口就完全没有输出（现场很难排查）。
 
-* **Build → Run** 烧录。此时菜单变为：
+* **Build → Run** 烧录。此时上电日志变为：
 
 
 
 ```
-=== MPU6050 AI Detector v3 ===
-Cmd: s=stream r=record l=learn d=detect c=cancel h=help
+=== MPU6050 AI Detector v4 ===
+UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1
+[CLK] HSE 8MHz -> PLL 72MHz
+[BOOT] LED selftest done (PC13), init MPU6050...
+[I2C] MPU6050 OK, WHO_AM_I=0x68
+...
 [AI] NanoEdge init OK, signal len=1
+[ready] type h for help
 ```
 
 `signal len` 显示的是模型要求的输入长度——本仓库选中的模型是 **1 样本 × 3 轴**，所以显示 `1`（换成别的 Benchmark 结果这个数会变）。学习 / 检测都按这个长度切窗口：`collector.c` 会把 1024 样本的录制窗口从头到尾切成若干个子窗口逐个喂给库。
@@ -246,7 +253,8 @@ Cmd: s=stream r=record l=learn d=detect c=cancel h=help
 
 3. **给电机加故障**（贴配重 / 卡异物）后，相似度应明显下降：
 
-* `SIM < 80` → 打印 `[ALARM] anomaly detected!`，板载 LED（PC13）闪 3 次；
+* `SIM < 80` → 打印 `[ALARM] anomaly detected! (PC13 LED blinks 3x)`，
+  板载 LED 闪 3 次（v4 起为非阻塞状态机，闪烁期间检测/串口都不受影响）；
 
 1. 再发 `d` 关闭检测模式。
 

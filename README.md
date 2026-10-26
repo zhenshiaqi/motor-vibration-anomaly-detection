@@ -15,7 +15,7 @@
 | 模型占用 | **RAM 624 B / Flash 564 B**（远低于 F103C8 的 20 KB / 64 KB） |
 | 采样与窗口 | 1 kHz 固定频率，1024 样本 × 3 轴 ≈ 1 秒信号 |
 | 工作方式 | **on-board training**：上电后在板上现场学习正常态，无需重训固件 |
-| 告警 | 相似度低于阈值（默认 80）→ 串口 `[ALARM]` + 板载 LED（PC13）闪 3 次 |
+| 告警 | 相似度低于阈值（默认 80）→ 串口 `[ALARM]` + 板载 LED（PC13）闪 3 次（非阻塞，不打断采样） |
 | 成本 | 主控 ~10 元 + 传感器 ~5 元 + 下载器 ~15 元，全部离线 |
 
 NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分），模型以 `libneai.a` + `NanoEdgeAI.h` 交付，直接链进 GCC 工程。
@@ -80,12 +80,10 @@ NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分）�
 ├── README.md                                    # 本文件：项目总览
 ├── .gitignore                                   # 排除编译产物（源码/数据/AI 库保留）
 │
-├── led/                                         # 板级点灯验证（CubeMX + Keil MDK 工程）
-│   └── stm32cubemx_test/stm32projects/test_LED/
-│       ├── test_LED.ioc                         # CubeMX 配置
-│       ├── Core/{Inc,Src}/                      # GPIO + HAL 初始化、main.c
-│       ├── Drivers/                             # STM32F1xx HAL + CMSIS
-│       └── MDK-ARM/test_LED.uvprojx             # Keil 工程文件（编译产物已忽略）
+├── firmware/                                    # 预编译固件：不装 IDE 也能直接烧板
+│   ├── README.md                                # 烧录步骤 + 开机自检 + LED 状态码
+│   ├── mpu6050_ai_test_v4.hex/.bin/.elf         # v4（推荐）：开机自检 + 非阻塞告警灯
+│   └── mpu6050_ai_test.hex/.bin/.elf            # v3（历史版本，保留对照）
 │
 └── project1/                                    # 主项目：振动异常检测
     ├── README-第一步-串口读取MPU6050.md
@@ -119,16 +117,23 @@ NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分）�
 
 1. 安装 **STM32CubeIDE**，`File → Open Projects from File System` 选中
    `project1/stm32cubeide_test/mpu6050_test/mpu6050_ai_test`。
-2. 链接 AI 库（CubeIDE 的编译在 `Debug/` 里执行，路径要从工程根算）：
-   `Project → Properties → C/C++ Build → Settings → Tool Settings → MCU/MPU GCC Linker → Libraries`
-   清空 **Libraries (-l)** 与 **Library search path (-L)**，改在
-   **Miscellaneous → Other flags** 里填 `-L../NEAI -lneai`。
-3. `Build` → `Run`，串口（115200 8N1）应打印：
+2. 检查 AI 库链接（工程里**已经配好**，仅在重新生成工程或换库时才需要改）：
+   `Project → Properties → C/C++ Build → Settings → Tool Settings → MCU/MPU GCC Linker →
+   Libraries` 里 **Libraries (-l)** 与 **Library search path (-L)** 保持为空，
+   改在 **Miscellaneous → Other flags** 里填 `-L../NEAI -lneai`
+   （CubeIDE 的编译在 `Debug/` 里执行，所以相对路径要从 `Debug` 往上退一级）。
+3. `Build` → `Run`。**先把串口助手打开（115200 8N1）再复位板子**，否则会错过开机日志：
 
 ```
-=== MPU6050 AI Detector v3 ===
+=== MPU6050 AI Detector v4 ===
+UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1
+[CLK] HSE 8MHz -> PLL 72MHz
+[BOOT] LED selftest done (PC13), init MPU6050...
+[I2C] MPU6050 OK, WHO_AM_I=0x68
 Cmd: s=stream r=record l=learn d=detect c=cancel h=help
+[I2C] MPU6050 online, sampling 1kHz (TIM2)
 [AI] NanoEdge init OK, signal len=1
+[ready] type h for help
 ```
 
 4. 学习正常态：电机稳定运转 → 发 `r` → 发 `l`，重复 3~5 次。
@@ -137,9 +142,14 @@ Cmd: s=stream r=record l=learn d=detect c=cancel h=help
 > ⚠️ 模型知识存在 **RAM**，掉电即失，重启后需重新执行学习流程（进阶可用
 > `neai_anomalydetection_get_knowledge/set_knowledge` 存进内部 Flash 自动恢复）。
 
-### 5.2 编译点灯验证（led/）
+### 5.2 不装 IDE，直接烧预编译固件（firmware/）
 
-用 **Keil MDK** 打开 `led/stm32cubemx_test/stm32projects/test_LED/MDK-ARM/test_LED.uvprojx` 直接编译下载；或改 `.ioc` 后用 CubeMX 重新生成。
+用 **STM32CubeProgrammer** 打开 `firmware/mpu6050_ai_test_v4.hex` → Download →
+断电重上电，串口 115200 8N1 就能看到上面的开机自检日志。不会编译的人走这条路最快。
+
+> 早期 `led/` 点灯验证工程（CubeMX + Keil MDK）**没有上传到仓库**，只在作者本地保留，
+> 并已写进 `.gitignore`；板载 LED 的点灯自检现在由主固件开机时完成（闪 3 次），
+> 不再需要单独的 led 工程。
 
 ### 5.3 只验证模型（不接板子）
 
@@ -172,12 +182,51 @@ python nanoedgeai_studio_emulator.py    # 按脚本内说明加载 artifacts 与
 | 窗口长度 | `COLLECT_SAMPLES 1024` × `COLLECT_AXES 3`（6 KB RAM 缓冲） | `Core/Inc/collector.h` |
 | 告警阈值 | `ALARM_THRESHOLD 80` | `Core/Src/collector.c` |
 | 串口 | USART1，115200 8N1，PA9/PA10 | `usart.c` |
-| 传感器 | MPU6050 @ I2C1，PB6/PB7，400 kHz，Fast Mode | `i2c.c`、`mpu6050.c` |
-| 告警指示 | PC13 板载 LED 闪 3 次 | `collector.c` |
+| 传感器 | MPU6050 @ I2C1，PB6/PB7，400 kHz，Fast Mode，地址 0x68（AD0 接 GND） | `i2c.c`、`mpu6050.c` |
+| 传感器在线检测 | 读 `WHO_AM_I(0x75)`：0x68 = MPU6050，0x70~0x74 = MPU6500/9250 兼容 | `mpu6050.c` |
+| I2C 超时 | `MPU6050_I2C_TIMEOUT_MS 50`（不是 HAL_MAX_DELAY，避免总线卡死后"假死"） | `Core/Inc/mpu6050.h` |
+| 告警指示 | PC13 板载 LED 非阻塞闪 3 次（100 ms/拍）+ 串口 `[ALARM]` | `collector.c` |
+| 空闲心跳 | 每 5 s 打印 `[alive] idle, type h for help` | `collector.h`（`HEARTBEAT_MS`） |
 
 ---
 
-## 8. 已知限制与后续方向
+## 8. 现场排查：串口没输出 / 传感器没找到
+
+**先记住一件事：v4 固件只在"上电那一下"打印开机日志，之后空闲时每 5 秒才有一行心跳。**
+所以正确的测试姿势是：**先打开串口助手（115200 8N1，选对 COM 口），再按板子上的复位键**，
+不要反过来。
+
+### 8.1 看 LED（PC13）就能定位到哪一步
+
+PC13 是 Blue Pill 板载 LED，**低电平点亮**。
+
+| LED 表现 | 说明 | 下一步 |
+| --- | --- | --- |
+| 上电快闪 3 次 → 熄灭 | 正常，MCU/时钟/串口/传感器都在线 | 发 `h` 应回帮助；发 `r`→`l`→`d` 走流程 |
+| 上电快闪 3 次 → **常亮** | MCU 正常，**MPU6050 没找到** | 查 VCC=3.3V、GND、SCL=PB6、SDA=PB7、AD0 接 GND |
+| 约 5 Hz **持续快闪**，串口无字 | 外设初始化失败（`Error_Handler`），或 HSE+HSI 都起不来 | 多半是板子/供电问题；用 ST-Link 重新烧一次 |
+| **完全不亮**，串口无字 | 没供电 / 没烧进去 / BOOT 跳线错 / 串口线错 | 先量 3.3V，再用 CubeProgrammer 读回芯片确认有程序 |
+
+### 8.2 串口本身的三个高频错误
+
+1. **TX/RX 没交叉**：USB-TTL 的 **RXD 接 PA9（TX）**，**TXD 接 PA10（RX）**；
+2. **没共地**：USB-TTL 的 GND 必须和 Blue Pill 的 GND 连在一起；
+3. **把板载 USB 当串口**：Blue Pill 的 USB 口不是 USB-TTL，插上也不会出现 COM 口，
+   必须用独立的 CH340/CP2102 模块（或带 VCP 的 ST-Link）。
+
+### 8.3 已经烧了 v3，串口一行都没有？
+
+v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成功后才被调用：
+
+- 传感器没接好 → 只打印一行 `MPU6050 init FAIL`，之后就"装死"（命令也被忽略）；
+- 如果串口助手是在这行打印**之后**才打开的，就完全看不到任何输出；
+- HSE 晶振起不来 → 直接进 `Error_Handler()` 死循环，同样一个字都没有。
+
+换成 `firmware/mpu6050_ai_test_v4.hex` 即可区分这三种情况（见 8.1）。
+
+---
+
+## 9. 已知限制与后续方向
 
 - 知识存 RAM，掉电丢失 → 可接 `get/set_knowledge` 落 Flash 做免学习重启。
 - 数据集每类仅 5 个窗口（Studio 侧已自动切分训练/验证），样本量偏小；
@@ -188,11 +237,29 @@ python nanoedgeai_studio_emulator.py    # 按脚本内说明加载 artifacts 与
 
 ---
 
-## 9. 参考资料
+## 10. 参考资料
 
 - ST Wiki：*NanoEdge AI Library for anomaly detection*（API、链接方式、阈值建议）
 - ST Wiki：*How to Build an Anomaly Detection Project for Predictive Maintenance with NanoEdge AI Studio*
 - STM32F103C8T6 数据手册 / RM0008 参考手册；MPU6050 数据手册
+
+---
+
+## 11. 版本变更
+
+**v4（当前源码 + `firmware/mpu6050_ai_test_v4.*`）**
+
+- 开机日志/命令表不再依赖传感器初始化：先打印横幅、闪灯自检，再初始化 I2C；
+  传感器失败也照常进入命令循环（v3 会整个 CLI 失效，表现为"串口没输出"）。
+- HSE 晶振起不来时自动回退到 HSI 64 MHz，不再静默进 `Error_Handler`。
+- I2C 全部改有限超时（50 ms），新增 `WHO_AM_I` 校验和 `MPU6050_BusRecover()` 总线自救。
+- 告警灯改非阻塞 100 ms 状态机（原来 `HAL_Delay` 600 ms 会卡住采样/串口）。
+- 空闲每 5 秒打印 `[alive]` 心跳；`Error_Handler` 用 5 Hz 闪灯代替死循环。
+- 文档：删除已下线 `led/` 工程的引用，补 `firmware/` 目录、开机自检与 LED 状态码。
+
+**v3（`firmware/mpu6050_ai_test.*`）**
+
+- 首次完整发布版本：1 kHz 采样、板上学习、实时检测、`[ALARM]` + LED 闪 3 次。
 
 ---
 
