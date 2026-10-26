@@ -224,6 +224,8 @@ v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成
 
 换成 `firmware/mpu6050_ai_test_v4.hex` 即可区分这三种情况（见 8.1）。
 
+> 完整的排查过程、代码级分析与验证证据，见 [docs/audit-report.md](docs/audit-report.md)。
+
 ---
 
 ## 9. 已知限制与后续方向
