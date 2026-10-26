@@ -3,7 +3,8 @@
 > 对象：`main` 分支快照（审计时对应 v3，即提交 `1ab6d0f`）
 > 方法：逐文件核对 → 用 STM32CubeIDE 2.2.0 自带 GNU Tools for STM32 14.3.rel1
 > 从源码原样重编 → 与仓库内预编译固件比对 → 代码路径分析
-> 结论日期：2026-10-27　｜　仓库当前状态：`main @ 0f2b0c1`（v4 固件 + 文档修正 + 许可证）
+> 结论日期：2026-10-27　｜　写作时仓库状态：`main @ 0f2b0c1`（v4 固件 + 文档修正 + 许可证）；
+> 此后发布的 **v4.1** 修正了 HSI 回退时的 TIM2 采样率（见第 5 节末），固件路径改为 `firmware/mpu6050_ai_test_v4.1.*`。
 
 ---
 
@@ -156,9 +157,10 @@ v3 `collector.c:94-99` 只判断了 `NEAI_NOT_INITIALIZED`，没判断
 
 ---
 
-## 5. v4：已发布并编译验证的版本
+## 5. v4 / v4.1：已发布并编译验证的版本
 
-产物在 `firmware/mpu6050_ai_test_v4.{hex,bin,elf}`（**推荐替代 v3**）。
+产物在 `firmware/mpu6050_ai_test_v4.1.{hex,bin,elf}`（**推荐替代 v3**；v3 已归档到
+`firmware/legacy/`）。v4.1 = v4 + 下面最后一行那个修正。
 
 | 改动 | 文件 | 解决什么 |
 | --- | --- | --- |
@@ -172,15 +174,16 @@ v3 `collector.c:94-99` 只判断了 `NEAI_NOT_INITIALIZED`，没判断
 | `detect()` 返回值全部处理 | `collector.c` | 学习不足时不再误报 ALARM |
 | 空闲每 5 s 打印 `[alive]` 心跳 | `collector.c` | 空白屏幕也能判断"固件在跑" |
 | `Error_Handler` 改 5 Hz 闪灯 | `main.c` | 启动失败也能用肉眼看见 |
+| **v4.1**：HSI 回退时按实际 PCLK1 重算 TIM2 预分频 | `main.c` | 无晶振的板子也保持 1 kHz 采样（v4 会掉到约 889 Hz） |
 
 编译结果（同一套工具链，可复现）：
 
 ```
-text    data     bss      bin
-32200     92    8996    32,296 B     Flash 49% / RAM 44%（20 KB）
+v4   : text 32200  data 92  bss 8996  -> bin 32,296 B
+v4.1 : text 32260  data 92  bss 8996  -> bin 32,356 B     Flash 49% / RAM 44%（20 KB）
 ```
 
-v4 二进制与重新编译的产物 **SHA256 完全一致**，说明 `firmware/` 里放的就是这套源码的产物。
+v4.1 二进制与重新编译的产物 **SHA256 完全一致**（`8FB88AE4…`），说明 `firmware/` 里放的就是这套源码的产物。
 
 > 注意：v4 改了 `Collector_Init()` 的签名（多了 `sensor_ok` 参数），
 > 所以 `main.c` / `collector.c` / `collector.h` 必须**一起**替换。
@@ -205,7 +208,7 @@ v4 二进制与重新编译的产物 **SHA256 完全一致**，说明 `firmware/
 >    用万用表量一下模块 VCC 有没有 3.3V。
 > 5. 打开串口助手后**按一下 `h` 回车**：能回帮助就说明串口双向都通；
 >    能回 `[Sensor] MPU6050 not ready` 就说明是传感器那一段的问题。
-> 6. 建议直接烧 `firmware/mpu6050_ai_test_v4.hex`：它开机就会打印
+> 6. 建议直接烧 `firmware/mpu6050_ai_test_v4.1.hex`：它开机就会打印
 >    `UART OK` / `[CLK] ...` / `[BOOT] LED selftest done` / `[I2C] MPU6050 OK, WHO_AM_I=0x68`，
 >    哪一步没过去一眼就能看出来；传感器没接好也会明确打印 `MPU6050 no answer (1/3)...`，
 >    而且命令照常有回应，不会再"装死"。
@@ -217,7 +220,7 @@ v4 二进制与重新编译的产物 **SHA256 完全一致**，说明 `firmware/
 ## 7. 发布回顾 / 待办
 
 - [x] `led/`：已从 README 删除引用（工程本身仍不上传）
-- [x] v4 固件已随仓库发布（`firmware/*_v4.*`），README 已写清与 v3 的差别
+- [x] v4 固件已随仓库发布（`firmware/*_v4.1.*`），README 已写清与 v3 的差别
 - [x] README / `firmware/README.md` 已写明"先打开串口助手再上电"
 - [x] `firmware/` 已有版本、体积、工具链信息
 - [x] 许可证：MIT / Apache-2.0 / GPL-3.0 三选一（见 `LICENSE`）
@@ -230,7 +233,7 @@ v4 二进制与重新编译的产物 **SHA256 完全一致**，说明 `firmware/
 
 | 路径 | 内容 |
 | --- | --- |
-| `firmware/mpu6050_ai_test_v4.hex/.bin/.elf` | v4 固件（已编译、可复现，SHA256 与重编产物一致） |
+| `firmware/mpu6050_ai_test_v4.1.hex/.bin/.elf` | v4.1 固件（已编译、可复现，SHA256 与重编产物一致） |
 | `firmware/README.md` | 烧录步骤、开机日志、LED 状态码表 |
 | `.../Core/Src/{main,collector,mpu6050}.c`、`Core/Inc/{collector,mpu6050}.h` | v4 源码（提交 `300d756`） |
 | `README.md`、第一/三步文档 | 文档修正（提交 `9be15a0`） |
@@ -242,7 +245,7 @@ v4 二进制与重新编译的产物 **SHA256 完全一致**，说明 `firmware/
 
 ## 9. 未验证项与风险
 
-1. **没有实物板**：v4 的串口/LED 实际表现是按代码推断的，未上板实测；
+1. **没有实物板**：v4/v4.1 的串口/LED 实际表现是按代码推断的，未上板实测；
    已验证的是"能编译、体积不超、二进制可复现、符号与 v3 完全一致"。
 2. HSI 回退后波特率：64 MHz 下 USART1 115200 的 BRR 误差约 −0.08%，远小于 UART 容限（~2%），可用。
 3. `metadata.json` 显示 AI 库编译时带 `fshort_enums` / soft-float；当前工程未加 `-fshort-enums`。

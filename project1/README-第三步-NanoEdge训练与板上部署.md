@@ -200,7 +200,7 @@
 
 * 用本仓库的 `collector.c` / `collector.h` **覆盖**工程里的同名文件（Refresh）；
 
-* **`main.c` 也要用本仓库的版本**：v4 的 `Collector_Init()` 多了一个 `sensor_ok` 参数，
+* **`main.c` 也要用本仓库的版本**：v4 起 `Collector_Init()` 多了一个 `sensor_ok` 参数，
   并且增加了开机自检、HSE→HSI 回退和传感器重试。继续用第二步的 main.c 会编译不过；
   若沿用 v3 的 main.c，则传感器一失败串口就完全没有输出（现场很难排查）。
 
@@ -209,7 +209,7 @@
 
 
 ```
-=== MPU6050 AI Detector v4 ===
+=== MPU6050 AI Detector v4.1 ===
 UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1
 [CLK] HSE 8MHz -> PLL 72MHz
 [BOOT] LED selftest done (PC13), init MPU6050...

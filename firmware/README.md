@@ -5,31 +5,31 @@
 
 | 文件 | 大小 | 用途 |
 | --- | --- | --- |
-| `mpu6050_ai_test_v4.elf` | 923 KB | **推荐**：带符号与调试信息，CubeIDE / GDB 调试用（含源码行号） |
-| `mpu6050_ai_test_v4.hex` | 89 KB | **推荐**：Intel HEX，STM32CubeProgrammer、ST-Link Utility、Keil 都能直接下载 |
-| `mpu6050_ai_test_v4.bin` | 31 KB | **推荐**：裸二进制，只能烧到 `0x08000000` 起始地址 |
-| `mpu6050_ai_test.elf/.hex/.bin` | 900/81/29 KB | v3 历史版本，保留用于对照（无开机自检，见下） |
+| `mpu6050_ai_test_v4.1.elf` | 919 KB | **推荐**：带符号与调试信息，CubeIDE / GDB 调试用（含源码行号） |
+| `mpu6050_ai_test_v4.1.hex` | 89 KB | **推荐**：Intel HEX，STM32CubeProgrammer、ST-Link Utility、Keil 都能直接下载 |
+| `mpu6050_ai_test_v4.1.bin` | 32 KB | **推荐**：裸二进制，只能烧到 `0x08000000` 起始地址 |
+| `legacy/mpu6050_ai_test_v3.*` | 900/81/29 KB | v3 历史版本，**仅供对照，不建议烧**（行为见下） |
 
-> **v3 → v4 为什么值得换**：v3 把横幅和命令表都放在 `Collector_Init()` 里，
-> 而 `Collector_Init()` 只有 MPU6050 初始化成功才会被调用。传感器一没接好，
-> 板子就一行字都不打印，现场根本分不清"固件没跑 / 串口接错 / 传感器坏了"。
-> v4 先打印、先闪灯证明 MCU 和串口活着，再去碰 I2C；传感器失败也照常进命令循环，
-> 并且会明确打印失败原因。
+> **v3 → v4 → v4.1 为什么值得换**：
+> v3 把开机横幅和命令表都放在 `Collector_Init()` 里，而它只有 MPU6050 初始化成功才会被调用。
+> 传感器一没接好，板子就一行字都不打印，现场分不清"固件没跑 / 串口接错 / 传感器坏了"。
+> v4 先打印、先闪灯证明 MCU 和串口活着，再去碰 I2C；传感器失败也照常进命令循环。
+> v4.1 在 v4 基础上修了一个边缘问题：HSE 晶振起不来回退到 HSI 64 MHz 时，
+> TIM2 预分频会按实际 PCLK1 重算，采样率仍是 1 kHz（v4 会掉到约 889 Hz）。
 
-## 构建信息（v4）
+## 构建信息（v4.1）
 
 | 项 | 值 |
 | --- | --- |
 | 目标芯片 | STM32F103C8Tx（Cortex-M3，64 KB Flash / 20 KB RAM） |
 | 构建工具 | STM32CubeIDE 2.2.0 + GNU Tools for STM32 14.3.rel1（arm-none-eabi-gcc） |
 | 架构 | `elf32-littlearm`，armv7-m，`-mcpu=cortex-m3 -mthumb` |
-| Flash 占用 | **32,296 B / 65,536 B ≈ 49%**（text 32,200 + data 92） |
+| Flash 占用 | **32,356 B / 65,536 B ≈ 49%**（text 32,260 + data 92） |
 | RAM 占用 | **9,088 B / 20,480 B ≈ 44%**（data 92 + bss 8,996，另有 1 KB 栈 + 0.5 KB 堆） |
-| 对应源码 | 仓库 `main` 分支 v4 源码（`main.c` / `collector.c` / `mpu6050.c`） |
+| 对应源码 | 仓库 `main` 分支 v4.1 |
+| 二进制校验 | 源码重编后 SHA256 与 `mpu6050_ai_test_v4.1.bin` 一致（`8FB88AE4…`） |
 
 其中 RAM 的大头是采集缓冲 `int16_t buf[1024][3]`（6 KB）加 NanoEdge 库运行时开销。
-
-> v3（`mpu6050_ai_test.*`）：Flash 29,620 B / RAM 9,080 B，功能相同但没有开机自检。
 
 ## 烧录
 
@@ -37,7 +37,7 @@
 
 1. ST-Link 连板子（SWDIO/PA13、SWCLK/PA14、3.3V、GND）；
 2. 打开 CubeProgrammer → 选 ST-LINK → Connect；
-3. 打开 `mpu6050_ai_test_v4.hex` → **Download**；
+3. 打开 `mpu6050_ai_test_v4.1.hex` → **Download**；
 4. 断电重上电。**先把串口助手打开（115200 8N1）再上电**，否则会错过开机那几行日志。
 
 **STM32CubeIDE**：`Run → Run Configurations` 里把固件指向 `.elf` 也能下载。
@@ -45,7 +45,7 @@
 ## 上电应该看到什么
 
 ```
-=== MPU6050 AI Detector v4 ===
+=== MPU6050 AI Detector v4.1 ===
 UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1
 [CLK] HSE 8MHz -> PLL 72MHz
 [BOOT] LED selftest done (PC13), init MPU6050...

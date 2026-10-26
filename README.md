@@ -82,8 +82,10 @@ NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分）�
 │
 ├── firmware/                                    # 预编译固件：不装 IDE 也能直接烧板
 │   ├── README.md                                # 烧录步骤 + 开机自检 + LED 状态码
-│   ├── mpu6050_ai_test_v4.hex/.bin/.elf         # v4（推荐）：开机自检 + 非阻塞告警灯
-│   └── mpu6050_ai_test.hex/.bin/.elf            # v3（历史版本，保留对照）
+│   ├── mpu6050_ai_test_v4.1.hex/.bin/.elf       # v4.1（推荐）：开机自检 + 非阻塞告警灯
+│   └── legacy/                                  # v3 历史固件（仅供对照，不建议烧）
+│       ├── README.md
+│       └── mpu6050_ai_test_v3.hex/.bin/.elf
 │
 └── project1/                                    # 主项目：振动异常检测
     ├── README-第一步-串口读取MPU6050.md
@@ -125,7 +127,7 @@ NanoEdge AI Studio 是 ST 官方免费工具（ST Edge AI Suite 的一部分）�
 3. `Build` → `Run`。**先把串口助手打开（115200 8N1）再复位板子**，否则会错过开机日志：
 
 ```
-=== MPU6050 AI Detector v4 ===
+=== MPU6050 AI Detector v4.1 ===
 UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1
 [CLK] HSE 8MHz -> PLL 72MHz
 [BOOT] LED selftest done (PC13), init MPU6050...
@@ -144,7 +146,7 @@ Cmd: s=stream r=record l=learn d=detect c=cancel h=help
 
 ### 5.2 不装 IDE，直接烧预编译固件（firmware/）
 
-用 **STM32CubeProgrammer** 打开 `firmware/mpu6050_ai_test_v4.hex` → Download →
+用 **STM32CubeProgrammer** 打开 `firmware/mpu6050_ai_test_v4.1.hex` → Download →
 断电重上电，串口 115200 8N1 就能看到上面的开机自检日志。不会编译的人走这条路最快。
 
 > 早期 `led/` 点灯验证工程（CubeMX + Keil MDK）**没有上传到仓库**，只在作者本地保留，
@@ -192,7 +194,7 @@ python nanoedgeai_studio_emulator.py    # 按脚本内说明加载 artifacts 与
 
 ## 8. 现场排查：串口没输出 / 传感器没找到
 
-**先记住一件事：v4 固件只在"上电那一下"打印开机日志，之后空闲时每 5 秒才有一行心跳。**
+**先记住一件事：v4.1 固件只在"上电那一下"打印开机日志，之后空闲时每 5 秒才有一行心跳。**
 所以正确的测试姿势是：**先打开串口助手（115200 8N1，选对 COM 口），再按板子上的复位键**，
 不要反过来。
 
@@ -222,7 +224,7 @@ v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成
 - 如果串口助手是在这行打印**之后**才打开的，就完全看不到任何输出；
 - HSE 晶振起不来 → 直接进 `Error_Handler()` 死循环，同样一个字都没有。
 
-换成 `firmware/mpu6050_ai_test_v4.hex` 即可区分这三种情况（见 8.1）。
+换成 `firmware/mpu6050_ai_test_v4.1.hex` 即可区分这三种情况（见 8.1）。
 
 > 完整的排查过程、代码级分析与验证证据，见 [docs/audit-report.md](docs/audit-report.md)。
 
@@ -249,7 +251,13 @@ v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成
 
 ## 11. 版本变更
 
-**v4（当前源码 + `firmware/mpu6050_ai_test_v4.*`）**
+**v4.1（当前源码 + `firmware/mpu6050_ai_test_v4.1.*`）**
+
+- 修正：HSE 晶振起不来回退到 HSI 64 MHz 时，TIM2 预分频按实际 PCLK1 重算
+  （64 MHz → PSC=63），采样率仍是 1 kHz；v4 在同样情况下会掉到约 889 Hz。
+- 目录整理：`firmware/` 只保留当前版本，v3 归档到 `firmware/legacy/`。
+
+**v4（已被 v4.1 取代，二进制可从 git 历史取回）**
 
 - 开机日志/命令表不再依赖传感器初始化：先打印横幅、闪灯自检，再初始化 I2C；
   传感器失败也照常进入命令循环（v3 会整个 CLI 失效，表现为"串口没输出"）。
@@ -259,7 +267,7 @@ v3 的打印全部在 `Collector_Init()` 里，而它只在 MPU6050 初始化成
 - 空闲每 5 秒打印 `[alive]` 心跳；`Error_Handler` 用 5 Hz 闪灯代替死循环。
 - 文档：删除已下线 `led/` 工程的引用，补 `firmware/` 目录、开机自检与 LED 状态码。
 
-**v3（`firmware/mpu6050_ai_test.*`）**
+**v3（`firmware/legacy/mpu6050_ai_test_v3.*`）**
 
 - 首次完整发布版本：1 kHz 采样、板上学习、实时检测、`[ALARM]` + LED 闪 3 次。
 

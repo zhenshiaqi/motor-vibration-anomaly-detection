@@ -119,6 +119,19 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+  /* ---- v4.1：HSE 回退时重算 TIM2 预分频，保证采样率仍是 1 kHz ----
+   * tim.c 里的 PSC=71 是按 72 MHz 算的（72 MHz / 72 = 1 MHz，再 ARR=999 → 1 kHz）。
+   * HSE 晶振起不来、回退到 HSI 64 MHz 时，若沿用 71 就变成 64 MHz/72/1000 ≈ 889 Hz，
+   * 与数据集和文档声明的 1 kHz 不符。这里按实际 PCLK1 重算（64 MHz → PSC=63）。
+   * 代码在 USER CODE 区，CubeMX 重新生成不会丢。 */
+  if (g_clk_hsi) {
+      uint32_t tim2_clk = HAL_RCC_GetPCLK1Freq() * 2U;   /* APB1 分频≠1 时定时器时钟 = PCLK1 × 2 */
+      htim2.Init.Prescaler = (uint16_t)((tim2_clk / 1000000U) - 1U);
+      if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
+          Error_Handler();
+      }
+  }
+
   /* ============================================================
    * 开机自检（v4 核心改动）
    *
@@ -131,7 +144,7 @@ int main(void)
    * ============================================================ */
   HAL_Delay(BOOT_SETTLE_MS);
 
-  say("\r\n=== MPU6050 AI Detector v4 ===\r\n");
+  say("\r\n=== MPU6050 AI Detector v4.1 ===\r\n");
   say("UART OK: USART1 PA9(TX)/PA10(RX) 115200 8N1\r\n");
   if (g_clk_hsi) {
       say("[CLK] HSE/8MHz crystal failed -> fallback to HSI 64MHz\r\n");
